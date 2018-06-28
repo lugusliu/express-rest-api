@@ -1,0 +1,22 @@
+{
+  "name": "express-rest-api",
+  "version": "1.0.0",
+  "description": "a restful api in express and mysql ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "restful",
+    "api",
+    "node",
+    "express",
+    "mysql",
+    "centos7.4"
+  ],
+  "author": "lugusliu",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.3"
+  }
+}
