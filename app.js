@@ -32,4 +32,4 @@ app.delete('/api/work/id/:workId', workController.deleteWorkById);
 
 app.listen(port, () => {
   console.log(chalk.bgGreen(`Server running at http://${host}:${port}/`));
-})
+});
