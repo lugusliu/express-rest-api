@@ -3,9 +3,14 @@ const bodyParser = require('body-parser');
 const chalk = require('chalk');
 const connection = require('./app/lib/database').connection;
 
+// controller
 const workController = require('./app/work/workController');
+const companyController = require('./app/company/companyController');
+const productController = require('./app/product/productController');
 
+// host qcloud
 const host = '127.0.0.1';
+// port
 const port = 8888;
 
 // create express instance
@@ -15,20 +20,24 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+// get work
+app.post('/api/getWork', workController.getWork);
 // add new work
-app.post('/api/work', workController.addWork);
+app.post('/api/addWork', workController.addWork);
+// update work
+app.post('/api/updateWork', workController.updateWork);
 
-// get all work
-app.get('/api/work', workController.getWork);
+// get company
+app.post('/api/getCompany', companyController.getCompany);
+// update company
+app.post('/api/updateCompany', companyController.updateCompany);
 
-// get work by id
-app.get('/api/work/id/:workId', workController.getWorkById);
-
-// update work by id
-app.put('/api/work/id/:workId', workController.updateWorkById);
-
-// delete work by id
-app.delete('/api/work/id/:workId', workController.deleteWorkById);
+// get product
+app.post('/api/getProduct', productController.getProduct);
+// add new product
+app.post('/api/addProduct', productController.addProduct);
+// update product
+app.post('/api/updateProduct', productController.updateProduct);
 
 app.listen(port, () => {
   console.log(chalk.bgGreen(`Server running at http://${host}:${port}/`));

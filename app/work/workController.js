@@ -2,101 +2,95 @@ const connection = require('../lib/database').connection;
 
 module.exports = {
   addWork(req, res) {
-    // accessing the data in the request body
+    // 获取请求 body
     const requestData = req.body;
 
+    // 将插入表的信息放入 workInfo
     const workInfo = {
-      userId: requestData.userId,
-      name: requestData.name,
-      description: requestData.description,
-      image: requestData.image,
-      url: requestData.url,
+      jobName: requestData.jobName,
+      jobDescription: requestData.jobDescription,
+      link: requestData.link,
+      status: 1,
+      userId: Boolean(requestData.userId) ? requestData.userId : 'admin',
       onlineTime: new Date(),
-      offlineTime: new Date(),
+      offlineTime: new Date(new Date().getTime() + 90 * 24 * 60 * 60 * 1000 )
     };
 
-    connection.query("INSERT INTO work SET ?", workInfo, (err, result, fields) => {
+    let sql = 'INSERT INTO work SET ?';
+
+    connection.query(sql, workInfo, (err, result, fields) => {
       if (err) {
         console.log(err);
-        return res.status(500).json({ code: 1, message: 'error occurred while add work information' });
+        return res.status(500).json({ code: 1, message: '新增职位信息失败' });
       }
 
-      return res.status(200).json({ code: 0, message: 'work information has been successfully added' });
+      return res.status(200).json({ code: 0, message: '职位添加成功' });
     });
   },
 
   getWork(req, res) {
-    connection.query("SELECT * FROM work", (err, result, fields) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).json({ code: 1, message: 'error occurred while get work information from database' });
-      }
-      return res.status(200).json({ code: 0, data: result });
-    });
-  },
-
-  getWorkById(req, res) {
-    // accessing the work id
-    const workId = req.params.workId;
-
-    connection.query("SELECT * FROM work where id = ?", workId, (err, result, fields) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).json({ code: 1, message: 'error occurred while get work information by id from database' });
-      }
-      if (result.length === 0) {
-        return res.status(404).json({ code: 1, message: 'work information by this id not present in database'});
-      }
-      return res.status(200).json({ code: 0, data: result })
-    });
-  },
-
-  updateWorkById(req, res) {
-    // accessing the work id
-    const workId = req.params.workId;
-
     // accessing the data in the request body
     const requestData = req.body;
 
-    connection.query("SELECT * from work where id = ?", workId, (err, result, fields) => {
+    const searchInfo = {
+      page: requestData.page ? requestData.page : 1,
+      size: requestData.size ? requestData.size : 10
+    };
+
+    // 查询范围
+    let m = (searchInfo.page - 1) * searchInfo.size;
+    let n = m + searchInfo.size;
+
+    let sql = 'SELECT * FROM work limit ?, ?';
+
+    connection.query(sql, [m, n], (err, results, fields) => {
       if (err) {
-        console.log(err)
-        return res.status(500).json({ code: 1, message: 'error occurred while finding work information by id from database' });
+        console.log(err);
+        return res.status(500).json({ code: 1, message: '获取职位信息失败' });
       }
-      if (result.length === 0) {
-        return res.status(404).json({ code: 1, message: 'work information by this id not present in database'});
-      }
-      connection.query("UPDATE work SET name=?, description=? where id = ?", [requestData.name, requestData.description, workId], (err, result, fields) => {
-        if (err) {
-          console.log(err)
-          return res.status(500).json({ code: 1, message: 'error occurred while updating work information by id from database' });      
-        }
-        res.status(200).json({ code: 0, message: 'work information has been successfully added'});
-      });
-    })
+      return res.status(200).json({ code: 0, data: results });
+    });
   },
 
-  deleteWorkById(req, res) {
-    // accessing the work id
-    const workId = req.params.workId;
-
+  updateWork(req, res) {
     // accessing the data in the request body
     const requestData = req.body;
 
-    connection.query("SELECT * from work where id = ?", workId, (err, result, fields) => {
+    const requestInfo = {
+      workId: requestData.id,
+      jobName: requestData.jobName,
+      jobDescription: requestData.jobDescription,
+      link: requestData.link,
+      offlineTime: requestData.offlineTime,
+      status: requestData.status
+    }
+    
+    let sql = 'SELECT * from work where id = ?';
+
+    connection.query(sql, requestInfo.workId, (err, result, fields) => {
       if (err) {
         console.log(err)
-        return res.status(500).json({ code: 1, message: 'error occurred while finding work information by id from database' });
+        return res.status(500).json({ code: 1, message: '查询职位信息出错' });
       }
       if (result.length === 0) {
-        return res.status(404).json({ code: 1, message: 'work information by this id not present in database'});
+        return res.status(404).json({ code: 1, message: 'id信息错误'});
       }
-      connection.query("DELETE FROM work where id = ?", [workId], (err, result, fields) => {
+      
+      const updateInfo = {
+        jobName: Boolean(requestInfo.jobName) ? requestInfo.jobName : result[0].jobName,
+        jobDescription: Boolean(requestInfo.jobDescription) ? requestInfo.jobDescription : result[0].jobDescription,
+        link: Boolean(requestInfo.link) ? requestInfo.link : result[0].link,
+        offlineTime: Boolean(requestInfo.offlineTime) ? new Date(requestInfo.offlineTime) : new Date(result[0].offlineTime),
+        status: Boolean(requestInfo.status) ? requestInfo.status : result[0].status
+      };
+
+      connection.query("UPDATE work SET jobName = ?, jobDescription = ?, link = ?, offlineTime = ?, status = ? where id = ?",
+      [updateInfo.jobName, updateInfo.jobDescription, updateInfo.link, updateInfo.offlineTime, updateInfo.status, requestInfo.workId], (err, result, fields) => {
         if (err) {
           console.log(err)
-          return res.status(500).json({ code: 1, message: 'error occurred while deleting work information by id from database' });      
+          return res.status(500).json({ code: 1, message: '更新数据库出错' });      
         }
-        res.status(200).json({ code: 0, message: 'work information has been successfully deleted'});
+        res.status(200).json({ code: 0, message: '职位信息更新成功'});
       });
     })
   }
