@@ -13,7 +13,7 @@ module.exports = {
       status: 1,
       userId: Boolean(requestData.userId) ? requestData.userId : 'admin',
       onlineTime: new Date(),
-      offlineTime: new Date(new Date().getTime() + 90 * 24 * 60 * 60 * 1000 )
+      offlineTime: Boolean(requestData.offlineTime) ? new Date(requestData.offlineTime) : new Date(new Date().getTime() + 90 * 24 * 60 * 60 * 1000)
     };
 
     let sql = 'INSERT INTO work SET ?';
@@ -34,21 +34,25 @@ module.exports = {
 
     const searchInfo = {
       page: requestData.page ? requestData.page : 1,
-      size: requestData.size ? requestData.size : 10
+      size: requestData.size ? requestData.size : 10,
+      jobName: Boolean(requestData.jobName) ? requestData.jobName : ""
     };
+
+    console.log(req.body);
 
     // 查询范围
     let m = (searchInfo.page - 1) * searchInfo.size;
-    let n = m + searchInfo.size;
+    let n = parseInt(m + searchInfo.size);
 
-    let sql = 'SELECT * FROM work limit ?, ?';
+    let sql = 'SELECT * FROM work WHERE INSTR(jobName, ?) limit ?, ?';
 
-    connection.query(sql, [m, n], (err, results, fields) => {
+    connection.query(sql, [searchInfo.jobName, m, n], (err, results, fields) => {
       if (err) {
         console.log(err);
         return res.status(500).json({ code: 1, message: '获取职位信息失败' });
       }
-      return res.status(200).json({ code: 0, data: results });
+      const len = results.length;
+      return res.status(200).json({ code: 0, message: len, data: results });
     });
   },
 
@@ -64,7 +68,7 @@ module.exports = {
       offlineTime: requestData.offlineTime,
       status: requestData.status
     }
-    
+
     let sql = 'SELECT * from work where id = ?';
 
     connection.query(sql, requestInfo.workId, (err, result, fields) => {
@@ -75,7 +79,7 @@ module.exports = {
       if (result.length === 0) {
         return res.status(404).json({ code: 1, message: 'id信息错误'});
       }
-      
+
       const updateInfo = {
         jobName: Boolean(requestInfo.jobName) ? requestInfo.jobName : result[0].jobName,
         jobDescription: Boolean(requestInfo.jobDescription) ? requestInfo.jobDescription : result[0].jobDescription,
@@ -85,12 +89,13 @@ module.exports = {
       };
 
       connection.query("UPDATE work SET jobName = ?, jobDescription = ?, link = ?, offlineTime = ?, status = ? where id = ?",
-      [updateInfo.jobName, updateInfo.jobDescription, updateInfo.link, updateInfo.offlineTime, updateInfo.status, requestInfo.workId], (err, result, fields) => {
-        if (err) {
-          console.log(err)
-          return res.status(500).json({ code: 1, message: '更新数据库出错' });      
-        }
-        res.status(200).json({ code: 0, message: '职位信息更新成功'});
+        [updateInfo.jobName, updateInfo.jobDescription, updateInfo.link, updateInfo.offlineTime, updateInfo.status, requestInfo.workId],
+        (err, result, fields) => {
+          if (err) {
+            console.log(err)
+            return res.status(500).json({ code: 1, message: '更新数据库出错' });
+          }
+          res.status(200).json({ code: 0, message: '职位信息更新成功'});
       });
     })
   }
