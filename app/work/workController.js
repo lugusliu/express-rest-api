@@ -9,7 +9,7 @@ module.exports = {
     const workInfo = {
       jobName: requestData.jobName,
       jobDescription: requestData.jobDescription,
-      link: requestData.link,
+      jobLink: requestData.jobLink,
       status: 1,
       userId: Boolean(requestData.userId) ? requestData.userId : 'admin',
       onlineTime: new Date(),
@@ -64,7 +64,7 @@ module.exports = {
       workId: requestData.id,
       jobName: requestData.jobName,
       jobDescription: requestData.jobDescription,
-      link: requestData.link,
+      jobLink: requestData.jobLink,
       offlineTime: requestData.offlineTime,
       status: requestData.status
     }
@@ -83,13 +83,13 @@ module.exports = {
       const updateInfo = {
         jobName: Boolean(requestInfo.jobName) ? requestInfo.jobName : result[0].jobName,
         jobDescription: Boolean(requestInfo.jobDescription) ? requestInfo.jobDescription : result[0].jobDescription,
-        link: Boolean(requestInfo.link) ? requestInfo.link : result[0].link,
+        jobLink: Boolean(requestInfo.jobLink) ? requestInfo.jobLink : result[0].jobLink,
         offlineTime: Boolean(requestInfo.offlineTime) ? new Date(requestInfo.offlineTime) : new Date(result[0].offlineTime),
         status: Boolean(requestInfo.status) ? requestInfo.status : result[0].status
       };
 
-      connection.query("UPDATE work SET jobName = ?, jobDescription = ?, link = ?, offlineTime = ?, status = ? where id = ?",
-        [updateInfo.jobName, updateInfo.jobDescription, updateInfo.link, updateInfo.offlineTime, updateInfo.status, requestInfo.workId],
+      connection.query("UPDATE work SET jobName = ?, jobDescription = ?, jobLink = ?, offlineTime = ?, status = ? where id = ?",
+        [updateInfo.jobName, updateInfo.jobDescription, updateInfo.jobLink, updateInfo.offlineTime, updateInfo.status, requestInfo.workId],
         (err, result, fields) => {
           if (err) {
             console.log(err)

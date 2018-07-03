@@ -4,8 +4,8 @@ const chalk = require('chalk');
 const connection = mysql.createConnection({
   host: '127.0.0.1',
   user: 'root',
-  password: '123456',
-  database: 'my_db',
+  password: 'pwd123',
+  database: 'cms_db',
   port: 3306
 });
 
